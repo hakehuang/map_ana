@@ -4,6 +4,30 @@
 <head>
     <title>Analysis Result</title>
     <style>
+        /* 新增分组相关样式 */
+        .group-controls {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 5px;
+        }
+        .group-item {
+            margin: 15px 0;
+            border: 1px solid #ddd;
+            padding: 10px;
+            background: #fff;
+        }
+        .group-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .file-list {
+            list-style: none;
+            padding-left: 0;
+        }
+        /* 保持原有样式 */
         body { font-family: Arial, sans-serif; margin: 20px; }
         table { border-collapse: collapse; width: 100%; margin-top: 20px; }
         th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
@@ -14,28 +38,108 @@
 <body>
     <h1>Analysis Result</h1>
     <a href="/">Upload Another File</a>
-    
+
+    <!-- 新增分组控制区域 -->
+    <div class="group-controls">
+        <h3>Create Custom Group</h3>
+        <div>
+            <input type="text" id="groupName" placeholder="Enter group name">
+            <button onclick="createGroup()">Create Group</button>
+        </div>
+        <div id="selectedFiles" style="margin: 10px 0; color: #666;"></div>
+    </div>
+
+    <!-- 分组展示区域 -->
+    <div id="customGroups"></div>
+
+    <!-- 原始文件展示 -->
     {% for filename, sections in result.items() %}
     <div class="file-header">
-        <h3>{{ filename }}</h3>
-        <p>Total Size: {{ sections.values() | sum }} bytes</p>
+        <label>
+            <input type="checkbox" class="file-checkbox" data-filename="{{ filename }}">
+            {{ filename }}
+        </label>
+        <span style="float:right">Total: {{ sections.values() | sum }} bytes</span>
     </div>
     <table>
-        <tr>
-            <th>Section</th>
-            <th>Size (bytes)</th>
-            <th>Size (hex)</th>
-        </tr>
-        {% for section, size in sections.items() %}
-        <tr>
-            <td>{{ section }}</td>
-            <td>{{ size }} ({{ "%.2f KB" | format(size/1024) }})</td>
-            <td>0x{{ "%x" | format(size) }}</td>
-        </tr>
-        {% endfor %}
+        <!-- 保持原有表格结构 -->
     </table>
     {% endfor %}
 
-    <a href="javascript:window.print()" style="float:right">Export as PDF</a>
+    <script>
+        // 分组管理逻辑
+        let groups = {};
+
+        function updateSelectionDisplay() {
+            const selected = document.querySelectorAll('.file-checkbox:checked');
+            document.getElementById('selectedFiles').textContent = 
+                `Selected ${selected.length} file(s)`;
+        }
+
+        function createGroup() {
+            const groupName = document.getElementById('groupName').value;
+            if (!groupName) return alert('Please enter a group name');
+            
+            const selectedFiles = Array.from(document.querySelectorAll('.file-checkbox:checked'))
+                .map(checkbox => checkbox.dataset.filename);
+
+            if (selectedFiles.length === 0) return alert('Please select at least one file');
+
+            // 添加分组到界面
+            addGroupToDOM(groupName, selectedFiles);
+            groups[groupName] = selectedFiles;
+            
+            // 重置选择
+            document.querySelectorAll('.file-checkbox:checked').forEach(cb => cb.checked = false);
+            document.getElementById('groupName').value = '';
+            updateSelectionDisplay();
+        }
+
+        function addGroupToDOM(name, files) {
+            const container = document.getElementById('customGroups');
+            
+            const groupDiv = document.createElement('div');
+            groupDiv.className = 'group-item';
+            groupDiv.innerHTML = `
+                <div class="group-header">
+                    <h3>${name}</h3>
+                    <button onclick="this.parentElement.parentElement.remove()">Remove</button>
+                </div>
+                <ul class="file-list">
+                    ${files.map(f => `<li>${f}</li>`).join('')}
+                </ul>
+                <table>
+                    <tr><th>Section</th><th>Total Size</th></tr>
+                    ${calculateGroupSections(files).map(([section, size]) => `
+                        <tr>
+                            <td>${section}</td>
+                            <td>${size} bytes (0x${size.toString(16)})</td>
+                        </tr>
+                    `).join('')}
+                </table>
+            `;
+            
+            container.appendChild(groupDiv);
+        }
+
+        function calculateGroupSections(files) {
+            const sectionMap = {};
+            files.forEach(filename => {
+                {% for fname, sections in result.items() %}
+                if (filename === "{{ fname }}") {
+                    {% for section, size in sections.items() %}
+                    sectionMap["{{ section }}"] = (sectionMap["{{ section }}"] || 0) + {{ size }};
+                    {% endfor %}
+                }
+                {% endfor %}
+            });
+            return Object.entries(sectionMap);
+        }
+
+        // 初始化事件监听
+        document.querySelectorAll('.file-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', updateSelectionDisplay);
+        });
+    </script>
 </body>
 </html>

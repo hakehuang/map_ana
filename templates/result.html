@@ -33,6 +33,16 @@
         th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
         th { background-color: #f2f2f2; }
         .file-header { background-color: #e0e0e0; margin-top: 20px; padding: 10px; }
+
+        /* 新增过滤提示样式 */
+        .filter-status {
+            color: #666;
+            padding: 10px;
+            background: #e8f4ff;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+
     </style>
 </head>
 <body>
@@ -65,6 +75,18 @@
         <!-- 保持原有表格结构 -->
     </table>
     {% endfor %}
+
+    <div class="filter-status">
+        {% if exclude_debug %}
+            Debug sections excluded ({{ DEBUG_SECTIONS | join(', ') }})
+        {% else %}
+            Showing all sections
+        {% endif %}
+    </div>
+
+    <!-- 在result.html中添加饼图 -->
+    <div id="chart" style="width: 600px; height: 400px;"></div>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 
     <script>
         // 分组管理逻辑
@@ -140,6 +162,24 @@
         document.querySelectorAll('.file-checkbox').forEach(checkbox => {
             checkbox.addEventListener('change', updateSelectionDisplay);
         });
+
+        const debugSections = {{ DEBUG_SECTIONS | tojson }};
+        let debugSize = 0, totalSize = 0;
+        
+        {% for file, sections in result.items() %}
+            {% for section, size in sections.items() %}
+                totalSize += {{ size }};
+                if (debugSections.includes("{{ section }}")) {
+                    debugSize += {{ size }};
+                }
+            {% endfor %}
+        {% endfor %}
+        
+        Plotly.newPlot('chart', [{
+            values: [totalSize - debugSize, debugSize],
+            labels: ['Normal Sections', 'Debug Sections'],
+            type: 'pie'
+        }]);
     </script>
 </body>
 </html>

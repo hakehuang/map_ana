@@ -4,6 +4,12 @@
 <head>
     <title>Map File Analyzer</title>
     <style>
+        .options {
+            margin: 15px 0;
+            padding: 10px;
+            background: #f8f8f8;
+            border-radius: 4px;
+        }
         body { font-family: Arial, sans-serif; max-width: 800px; margin: 20px auto; padding: 20px; }
         .upload-box { border: 2px dashed #ccc; padding: 30px; text-align: center; }
         input[type="submit"] { background: #4CAF50; color: white; padding: 10px 20px; border: none; cursor: pointer; }
@@ -17,6 +23,13 @@
             <p>Drag your .map file here or click to upload</p>
         </div>
         <br>
+        <!-- 新增排除调试段选项 -->
+        <div class="options">
+            <label>
+                <input type="checkbox" name="exclude_debug">
+                Exclude debug sections (.debug*, .comment, etc.)
+            </label>
+        </div>
         <input type="submit" value="Analyze">
     </form>
 </body>

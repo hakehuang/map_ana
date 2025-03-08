@@ -1,0 +1,41 @@
+<!-- templates/result.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Analysis Result</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .file-header { background-color: #e0e0e0; margin-top: 20px; padding: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Analysis Result</h1>
+    <a href="/">Upload Another File</a>
+    
+    {% for filename, sections in result.items() %}
+    <div class="file-header">
+        <h3>{{ filename }}</h3>
+        <p>Total Size: {{ sections.values() | sum }} bytes</p>
+    </div>
+    <table>
+        <tr>
+            <th>Section</th>
+            <th>Size (bytes)</th>
+            <th>Size (hex)</th>
+        </tr>
+        {% for section, size in sections.items() %}
+        <tr>
+            <td>{{ section }}</td>
+            <td>{{ size }} ({{ "%.2f KB" | format(size/1024) }})</td>
+            <td>0x{{ "%x" | format(size) }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% endfor %}
+
+    <a href="javascript:window.print()" style="float:right">Export as PDF</a>
+</body>
+</html>

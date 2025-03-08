@@ -1,0 +1,23 @@
+<!-- templates/upload.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Map File Analyzer</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 20px auto; padding: 20px; }
+        .upload-box { border: 2px dashed #ccc; padding: 30px; text-align: center; }
+        input[type="submit"] { background: #4CAF50; color: white; padding: 10px 20px; border: none; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Upload Map File</h1>
+    <form method="post" enctype="multipart/form-data">
+        <div class="upload-box">
+            <input type="file" name="map_file" accept=".map">
+            <p>Drag your .map file here or click to upload</p>
+        </div>
+        <br>
+        <input type="submit" value="Analyze">
+    </form>
+</body>
+</html>
